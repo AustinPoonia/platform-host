@@ -1,7 +1,7 @@
 /**
  * The declaration and the implementation, driven against each other.
  *
- * Before Phase 6a, `platform:host`'s shape was proved by the kernel's suites or by
+ * Before the capability split, `platform:host`'s shape was proved by the kernel's suites or by
  * nothing at all: `artifact-protocol` held the declaration and ran a parse over it,
  * `ArtifactPatform/lib/host.js` held the implementation, and the only thing that ever
  * compared them was `assemble.js`'s `checkedCall` — at runtime, on a device, for whichever
@@ -40,7 +40,7 @@
  *     asks for exactly one name and adds no fallback of its own.
  *
  *   - **What it cannot prove.** That `READABLE_ENV` holds the six names it holds — the
- *     list is `ArtifactPatform/lib/host.js`'s and §6a would not let it move, so what is
+ *     list is `ArtifactPatform/lib/host.js`'s and it was not allowed to move, so what is
  *     asserted here is the *shape of the promise*: that `env` is a pass-through with no
  *     second source, and that the declaration's prose still names the six. It also cannot
  *     prove that `@host` is minted unscoped, that one `conventions` is resolved per device
@@ -147,7 +147,7 @@ async function checked (instance, name, args) {
  *
  * A **copy for the fixture only**, and the distinction matters enough to say twice: this
  * is not a second definition of the allow-list. The list that decides is the kernel's and
- * §6a would not let it move, because an allow-list is authority and the contained thing
+ * it was not allowed to move, because an allow-list is authority and the contained thing
  * does not name its own containment. What the copy is for is standing up a substrate that
  * behaves the way the kernel's does, so the cases below can show that this capability
  * *adds no second source* — and the last case in the file compares it against the
@@ -671,7 +671,7 @@ test('a console beats the environment, and an absent console does not', async ()
 
 test('env asks for one name and adds no second source of its own', async () => {
   // The list that decides is `ArtifactPatform/lib/host.js`'s `READABLE_ENV` and ROADMAP
-  // §6a would not let it move: an allow-list is *authority*, and letting the contained
+  // It was not allowed to move: an allow-list is *authority*, and letting the contained
   // thing name what it may read is letting it write its own containment. A capability repo
   // naming its own list is one step nearer that mistake, not further from it.
   //

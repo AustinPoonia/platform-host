@@ -21,14 +21,14 @@ await h.methods.profileEnsure([`export PATH="${bin}:$PATH"`])
 
 ## Why this is a repository
 
-`ROADMAP.md` Phase 6a, and the rule `ArtifactPatform/scripts/all-repos.sh
+The capability split, and the rule `ArtifactPatform/scripts/all-repos.sh
 --check-doors` enforces: **the kernel wires capabilities; it does not implement
 them.** Six capabilities the runtime supplies had their declarations in one file in
 `artifact-protocol` and their implementations spread over four files in the kernel,
 no two sharing a boundary. So a capability was two documents in two repositories
 with nothing holding them together.
 
-This is the **last** of the six and §6a put it last on purpose: the largest file, the
+This is the **last** of the six and it went last on purpose: the largest file, the
 adapter-conventions machinery, and an open ceiling. It also had the widest gap between
 what was declared and what was proved. Fifteen operations; the kernel's five host
 suites reach eleven. And `AGENTS.md` §3's prose table — the only description of these
@@ -63,7 +63,7 @@ socket or a hypercore. There is no machinery left in `ArtifactPatform/lib/host.j
 all. What is left is **authority**, which is a different reason for staying:
 
 - **`READABLE_ENV`, the six-name allow-list** — `HOME`, `SHELL`, `TERM`, `LANG`,
-  `PATH`, `ARTIFACT_COLUMNS`. §6a names it in its short list of things that must not
+  `PATH`, `ARTIFACT_COLUMNS`. It is in the short list of things that must not
   move, beside the scoping table and the minting: letting the contained thing name
   what it may read is letting it write its own containment. A capability repository is
   not an adapter, so the list would have been out of the contained thing's reach here

@@ -4,12 +4,12 @@
  *
  * ## Why this is its own repository
  *
- * ROADMAP.md Phase 6a: **the kernel wires capabilities; it does not implement them.** Six
+ * The capability rule is **the kernel wires capabilities; it does not implement them.** Six
  * capabilities the runtime supplies had their declarations in one file in
  * `artifact-protocol` and their implementations spread across four files in the kernel, no
  * two sharing a boundary — so a capability was two documents in two repositories with
  * nothing holding them together, and the only thing that proved either was the kernel's
- * own suite. This is the **last** of the six, and §6a put it last on purpose: the largest
+ * own suite. This is the **last** of the six, and it went last on purpose: the largest
  * file, the adapter-conventions machinery, and an open ceiling.
  *
  * The name is *derived*: the contract id with the `:` turned into a `-`. There is no
@@ -42,7 +42,7 @@
  * Stayed, and unlike the other five capabilities the reason is not a socket or a
  * hypercore — it is that these are **authority rather than mechanism**:
  *
- *   - **`READABLE_ENV`, the six-name allow-list.** §6a names it as a thing that must not
+ *   - **`READABLE_ENV`, the six-name allow-list.** It is one of the things that must not
  *     move. Letting the contained thing name what it may read is letting it write its own
  *     containment, and a capability repo naming its own list is one step nearer that
  *     mistake rather than further from it. The `env` operation is a pass-through to a
