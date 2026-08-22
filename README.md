@@ -74,7 +74,13 @@ all. What is left is **authority**, which is a different reason for staying:
   singleton `bin/artifact.js` holds. A realm has no `isatty` and no `ioctl`; it does
   not follow that *nobody* can, and the party who can is the process. The **clamp**
   came here, because the declaration promises "a clamped column count" and a promise
-  is the promiser's to keep.
+  is the promiser's to keep. **The measurement beats `ARTIFACT_COLUMNS`, deliberately**
+  — the shim is what sets that variable, from `${COLUMNS:-$(tput cols)}`, so treating it
+  as an override would let a shell's stale guess beat a live `ioctl` on the terminal
+  being written to. `lib/host.js` argues it in full and admits the cost: an operator who
+  sets the variable by hand *on a console* is ignored. The way to be heard until a
+  separate override name exists is to give it nothing to measure — `ARTIFACT_COLUMNS=600
+  artifact … > wide.txt` renders at 600, because a file is not a terminal.
 - **`chain.js`'s `NATIVE` table** — `@host` is minted **unscoped**, which is why one
   object serves every holder in a network and why nothing reaches `writeCommand`
   carrying the identity of who called it. `@store:<instance>` next door is per
