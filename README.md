@@ -95,6 +95,37 @@ The machine is therefore a **parameter**. `host()` takes one and `lib/host.js` w
 down the seven members it needs as a typedef, so "what a host needs from the runtime"
 is a document rather than whatever the kernel happened to expose.
 
+## `writeDocument` and the consumer it does not have yet
+
+`1.1.0` adds one operation: write a document into a kernel-owned directory, mode
+`0644`, name validated exactly as a command name is, suffix from a closed set.
+`artifact-web/README.md` argued three shapes for putting a page in front of a
+person and recommended this one — no listener, no port, no CSRF, no origin,
+nothing reachable from outside the machine — and this is that recommendation
+taken.
+
+**But it recommended it for an adapter, and that assumption is load-bearing.**
+This capability is one grant with everything in it. An artifact that binds
+`platform:host` to get `writeDocument` also gets `writeCommand`, which puts an
+executable on a PATH. For the three shipped adapters that is free: they already
+hold it, and the README's sentence — *"an artifact that can already put an
+executable on your PATH writing an inert HTML file next to it is not a
+widening"* — is exactly right about them.
+
+It is not right about anybody else. The first artifact that is **not** an adapter
+and wants to write a page has to be handed command-installation authority to get
+it, and that is a widening of who can install commands rather than of what a
+document is.
+
+So the open question is named here rather than crossed silently: **the first
+non-adapter consumer forces `writeDocument` out of `platform:host` and into a
+capability of its own** — `platform:documents@1`, one operation, no relationship
+to a PATH. That is a split, not an addition, and it is worth doing *at* that
+moment rather than before it, because a capability with no consumer is a shape
+nobody has had to live with. Until then `writeDocument` is an adapter's
+operation, and it has no consumer at all — which `artifact-web`'s `document@1`
+family is also still waiting for, and for the same missing piece.
+
 ## What the containment is, stated with what it is not
 
 **A path traversal cannot be spelled.** Command names go through
