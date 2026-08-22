@@ -95,10 +95,13 @@ const implementation = require('./lib/host')
 module.exports = {
   ID: declaration.ID,
   VERSION: declaration.VERSION,
+  VERSION_1: declaration.VERSION_1,
   DECLARATION: declaration.DECLARATION,
+  DECLARATION_1: declaration.DECLARATION_1,
   DECLARATIONS: declaration.DECLARATIONS,
   host: implementation.host,
   COMMAND: implementation.COMMAND,
+  DOCUMENT_SUFFIX: implementation.DOCUMENT_SUFFIX,
   BEGIN: implementation.BEGIN,
   END: implementation.END
 }
