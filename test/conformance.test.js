@@ -26,7 +26,7 @@
  * a suite that mocked the filesystem would be asserting its own mock. The third is a plain
  * object, which is what `boot.js` hands over.
  *
- *   - **What this proves.** That the sixteen operations exist and answer in the declared
+ *   - **What this proves.** That the fifteen operations exist and answer in the declared
  *     shape; that a command name outside `COMMAND` cannot be written, read, listed or
  *     removed; that a suffix, prefix or shell name outside `artifact-protocol`'s classes is
  *     refused, so `<binDir>/<name><suffix>` is the whole reachable set and a traversal is
@@ -72,7 +72,7 @@ const fs = require('bare-fs')
 const path = require('bare-path')
 
 const { contract } = require('artifact-protocol')
-const { DECLARATION, DECLARATION_1, DOCUMENT_SUFFIX, ID, VERSION, host, COMMAND, BEGIN, END } = require('..')
+const { DECLARATION, ID, VERSION, host, COMMAND, BEGIN, END } = require('..')
 
 /** @type {[string, () => Promise<void> | void][]} */
 const cases = []
@@ -264,7 +264,7 @@ test('the built instance is exactly the declared surface, no more and no less', 
   assert.equal(present.join(','), declared.join(','),
     `the instance offers ${present.join(',')} and declares ${declared.join(',')}`)
 
-  assert.equal(declared.length, 16, 'the contract has sixteen operations; drive the new one rather than editing this')
+  assert.equal(declared.length, 15, 'the contract has fifteen operations; drive the new one rather than editing this')
 })
 
 test('the instance answers on the contract it declares, at the version it declares', () => {
@@ -278,130 +278,6 @@ test('the instance answers on the contract it declares, at the version it declar
   assert.equal(h.id, '@host', 'the plan\'s target name is carried through, and it is unscoped')
   assert.equal(DECLARATION.version, VERSION)
   assert.equal(ID, 'platform:host', 'the id the repo is named after')
-})
-
-/* ─────────────────────────── writeDocument, 1.1.0 ────────────────────────── */
-
-test('1.0.0 does not have writeDocument, which is what makes the minor a minor', () => {
-  // The whole reason there are two declarations. A port on `^1.0.0` takes the
-  // *lowest* version its range admits as its baseline, so the three shipped
-  // adapters are held to a shape with no writeDocument in it and `checkedCall`
-  // refuses the call by name. An artifact that wants it says `^1.1.0`, and an
-  // admin reading the manifest can see that it did.
-  const names = (/** @type {any} */ d) => d.shape.operations.map((/** @type {any} */ o) => o.name)
-  assert.equal(names(DECLARATION_1).includes('writeDocument'), false, '1.0.0 grew an operation')
-  assert.equal(names(DECLARATION).includes('writeDocument'), true, '1.1.0 does not have the operation it exists for')
-
-  // And 1.1.0 is otherwise 1.0.0, which is the claim a spread makes and a second
-  // hand-written copy would not: every operation neither version changed has to
-  // be the same object graph in both.
-  const older = names(DECLARATION_1)
-  assert.equal(names(DECLARATION).filter((/** @type {string} */ n) => n !== 'writeDocument').join(','), older.join(','))
-  for (const name of older) {
-    const a = DECLARATION_1.shape.operations.find((/** @type {any} */ o) => o.name === name)
-    const b = DECLARATION.shape.operations.find((/** @type {any} */ o) => o.name === name)
-    assert.equal(json(a), json(b), `${name} differs between 1.0.0 and 1.1.0`)
-  }
-})
-
-test('a document lands beside binDir, never inside it', async () => {
-  const bin = scratch('doc-dir')
-  const { h } = built({ binDir: bin })
-
-  const at = await h.methods.writeDocument('report', '<p>hello</p>')
-  assert.equal(at, path.join(path.dirname(bin), 'documents', 'report.html'))
-  assert.equal(fs.readFileSync(at, 'utf8'), '<p>hello</p>')
-
-  // The property that sentence is about: everything in binDir is on a PATH, and a
-  // document is not a command. A file that landed there would be one a shell
-  // could be talked into running.
-  assert.equal(at.startsWith(bin + path.sep), false, 'a document landed inside binDir')
-  assert.equal(fs.existsSync(bin), false, 'writing a document created the command directory')
-})
-
-test('the suffix set is closed, and .html is what a caller gets by not asking', async () => {
-  const { h } = built({ binDir: scratch('doc-suffix') })
-
-  for (const suffix of DOCUMENT_SUFFIX) {
-    const at = await h.methods.writeDocument('page', 'x', suffix)
-    assert.ok(at.endsWith(suffix), `${suffix}: got ${at}`)
-  }
-  for (const absent of [undefined, null]) {
-    assert.ok((await h.methods.writeDocument('page', 'x', absent)).endsWith('.html'), `${json(absent)} did not default to .html`)
-  }
-
-  // The refusals, and the four that matter are the ones a desktop executes on
-  // open. `.html` and `.svg` run script in a browser and are still admitted —
-  // "inert" is the wrong word and the declaration does not use it — but nothing
-  // here is handed to the *operating system* to run.
-  for (const bad of ['.sh', '.command', '.desktop', '.scpt', '.exe', '.bat', '.HTML', 'html', '.htm', '', '.js', 7, {}]) {
-    let message = ''
-    try { await h.methods.writeDocument('page', 'x', /** @type {any} */ (bad)) } catch (/** @type {any} */ e) { message = String(e && e.message) }
-    assert.ok(/is not a document suffix/.test(message), `${json(bad)}: ${message}`)
-  }
-})
-
-test('a document name is a name, so a path cannot be spelled', async () => {
-  const { h } = built({ binDir: scratch('doc-name') })
-
-  for (const bad of ['../escape', 'a/b', '/etc/passwd', 'Report', 'report file', '.hidden', '-lead', '', 'a'.repeat(65), '..', 7, {}, []]) {
-    let message = ''
-    try { await h.methods.writeDocument(/** @type {any} */ (bad), 'x') } catch (/** @type {any} */ e) { message = String(e && e.message) }
-    assert.ok(/is not a command name/.test(message), `${json(bad)}: ${message}`)
-  }
-  // The control: the class admits what it is meant to.
-  assert.ok(await h.methods.writeDocument('a', 'x'))
-  assert.ok(await h.methods.writeDocument('a-2-b', 'x'))
-})
-
-test('a nullish name is a document called "null", which is inside()\'s answer and not this operation\'s', async () => {
-  // Found by writing the case above with `null` in the refusal list and watching
-  // it pass nothing. `inside()` does `String(name)` before testing it against
-  // `COMMAND`, and `String(null)` is `'null'` — four lowercase letters starting
-  // with a letter, which is a legal command name.
-  //
-  // Recorded rather than fixed, and the reason is where the behaviour lives:
-  // `inside()` is shared with `writeCommand` and `writeCompletion`, so narrowing
-  // it here would change what a shipped contract does to two other operations for
-  // the sake of a caller that passed the wrong thing. The scoping still holds —
-  // the file is `documents/null.html` and no path was spelled — so what is lost
-  // is a diagnostic, not a boundary.
-  //
-  // Pinned so that a future narrowing of `inside()` is a decision somebody makes
-  // rather than a change three operations absorb silently.
-  const { h } = built({ binDir: scratch('doc-null') })
-  for (const nullish of [null, undefined]) {
-    const at = await h.methods.writeDocument(/** @type {any} */ (nullish), 'x')
-    assert.equal(path.basename(at), String(nullish) + '.html', `${json(nullish)} landed at ${at}`)
-  }
-})
-
-test('the same name written twice is the newer document, not a refusal', async () => {
-  // Unlike writeCommand, which refuses to clobber because two networks both
-  // shipping `send` is a real contest between two authorities. Nothing dispatches
-  // on a document's name, so a report written twice should be the newer report.
-  const { h } = built({ binDir: scratch('doc-again') })
-  const first = await h.methods.writeDocument('report', 'old')
-  const second = await h.methods.writeDocument('report', 'new')
-  assert.equal(first, second)
-  assert.equal(fs.readFileSync(second, 'utf8'), 'new')
-})
-
-test('the bytes are written as given, and the suffix decides nothing about them', async () => {
-  // A kernel that parsed the contents to check they matched the suffix would be a
-  // second renderer nobody asked for, and it would be wrong about the first
-  // artifact that wrote valid XHTML into a .html. Whatever is passed is what
-  // lands, byte for byte, including the payloads a document renderer escapes.
-  const { h } = built({ binDir: scratch('doc-bytes') })
-  for (const [body, suffix] of [
-    ['<script>alert(1)</script>', '.html'],
-    ['not,really;csv', '.csv'],
-    ['<svg xmlns="http://www.w3.org/2000/svg"/>', '.svg'],
-    ['', '.txt']
-  ]) {
-    const at = await h.methods.writeDocument('doc', body, suffix)
-    assert.equal(fs.readFileSync(at, 'utf8'), body, `${suffix} was altered on the way in`)
-  }
 })
 
 /* ──────────────── every operation, driven through its shape ─────────────── */
@@ -422,8 +298,6 @@ test('every declared operation is driven and every answer validates against its 
   assert.equal(await checked(h, 'writeCommand', ['send', '#!/bin/sh\nexec artifact send "$@"\n']), path.join(bin, 'send'))
   assert.equal(await checked(h, 'writeCompletion', ['send', 'zsh', '#compdef send\n', { prefix: '_' }]),
     path.join(path.dirname(bin), 'completions', 'zsh', '_send'))
-  assert.equal(await checked(h, 'writeDocument', ['report', '<p>hello</p>']),
-    path.join(path.dirname(bin), 'documents', 'report.html'))
   assert.equal(json(await checked(h, 'listCommands', [])), json(['send']))
   assert.equal(await checked(h, 'hasCommand', ['send']), true)
   assert.equal(await checked(h, 'removeCommand', ['send']), true)
@@ -433,11 +307,11 @@ test('every declared operation is driven and every answer validates against its 
   assert.equal(await checked(h, 'profileRemove', []), true)
 
   // Coverage of this file over its own subject, asserted rather than eyeballed: the
-  // sixteen calls above are the sixteen declared operations. A seventeenth added to the
+  // fifteen calls above are the fifteen declared operations. A sixteenth added to the
   // declaration fails here instead of being quietly undriven, which is the failure mode of
   // a conformance suite written as a list of cases — and is how `AGENTS.md` §3's table
   // came to be missing three of these.
-  assert.equal(DECLARATION.shape.operations.length, 16,
+  assert.equal(DECLARATION.shape.operations.length, 15,
     'an operation was added or removed; drive it above rather than editing this number')
 })
 

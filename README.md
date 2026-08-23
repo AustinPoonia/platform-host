@@ -95,36 +95,38 @@ The machine is therefore a **parameter**. `host()` takes one and `lib/host.js` w
 down the seven members it needs as a typedef, so "what a host needs from the runtime"
 is a document rather than whatever the kernel happened to expose.
 
-## `writeDocument` and the consumer it does not have yet
+## `writeDocument` was here for a day, and is `platform:documents` now
 
-`1.1.0` adds one operation: write a document into a kernel-owned directory, mode
-`0644`, name validated exactly as a command name is, suffix from a closed set.
-`artifact-web/README.md` argued three shapes for putting a page in front of a
-person and recommended this one — no listener, no port, no CSRF, no origin,
-nothing reachable from outside the machine — and this is that recommendation
-taken.
+`1.1.0` added one operation — write a document into a kernel-owned directory —
+because `artifact-web/README.md` recommended exactly that, and its argument was
+sound for the consumer it had in mind:
 
-**But it recommended it for an adapter, and that assumption is load-bearing.**
-This capability is one grant with everything in it. An artifact that binds
-`platform:host` to get `writeDocument` also gets `writeCommand`, which puts an
-executable on a PATH. For the three shipped adapters that is free: they already
-hold it, and the README's sentence — *"an artifact that can already put an
-executable on your PATH writing an inert HTML file next to it is not a
-widening"* — is exactly right about them.
+> an artifact that can already put an executable on your `PATH` writing an inert
+> HTML file next to it is not a widening.
 
-It is not right about anybody else. The first artifact that is **not** an adapter
-and wants to write a page has to be handed command-installation authority to get
-it, and that is a widening of who can install commands rather than of what a
-document is.
+That is true of an **adapter**, which already holds this capability. It is not
+true of anybody else, and this repo said so at the time, with the trigger written
+down: *"the first non-adapter consumer forces `writeDocument` out of
+`platform:host` and into a capability of its own."*
 
-So the open question is named here rather than crossed silently: **the first
-non-adapter consumer forces `writeDocument` out of `platform:host` and into a
-capability of its own** — `platform:documents@1`, one operation, no relationship
-to a PATH. That is a split, not an addition, and it is worth doing *at* that
-moment rather than before it, because a capability with no consumer is a shape
-nobody has had to live with. Until then `writeDocument` is an adapter's
-operation, and it has no consumer at all — which `artifact-web`'s `document@1`
-family is also still waiting for, and for the same missing piece.
+The trigger fired the next day. `artifact-codes` is a QR surface — it provides
+`view` and `cli`, it is not an adapter, and it wanted to save an SVG. Binding
+`platform:host` to get that would also have handed it `writeCommand`: authority
+to put an executable on a PATH, granted so that a symbol could be written to a
+file. That is a widening of *who installs commands*, which is not what was being
+asked for.
+
+So the operation lives in
+[`platform-documents`](https://github.com/AustinPoonia/platform-documents), and
+**`platform:host@1.1.0` is deleted rather than deprecated.** Nothing ever bound
+it — no manifest in the tree ported `^1.1.0` — and a version left with a hole in
+it is worse than a version that never existed. This capability publishes one
+declaration again.
+
+Worth keeping from the episode: the shape of the mistake was not the code, which
+was fine and moved almost unchanged. It was assuming the consumer would look like
+the consumer the recommendation had in mind. The recommendation said "an adapter"
+in as many words and the reading dropped it.
 
 ## What the containment is, stated with what it is not
 
